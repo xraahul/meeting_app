@@ -1,0 +1,535 @@
+/* ══════════════════════════════════════════
+   MeetingRoom.css — Premium dark meeting UI
+   ══════════════════════════════════════════ */
+
+/* ─── Page Layout ─────────────────────────── */
+.room-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #060710;
+    overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────── */
+.room-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(15, 17, 32, 0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.room-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.room-logo { font-size: 20px; }
+
+.room-id-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.room-id-label code {
+    background: var(--bg-input);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent);
+    border: 1px solid var(--border);
+}
+
+.room-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.room-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ─── Content Area ────────────────────────── */
+.room-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ─── Video Grid ──────────────────────────── */
+.video-grid {
+    flex: 1;
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    align-content: center;
+    justify-content: center;
+    overflow: hidden;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    transition: all var(--transition-med);
+}
+
+/* Solo mode — center single video */
+.video-grid.solo {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.video-grid.with-chat {
+    flex: 1;
+}
+
+/* ─── Video Tile ──────────────────────────── */
+.video-tile {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color var(--transition-fast);
+}
+
+.video-tile:hover { border-color: rgba(108, 99, 255, 0.35); }
+
+.video-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    background: #000;
+}
+
+.video-tile video.video-hidden { display: none; }
+
+.video-avatar {
+    position: absolute;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -1px;
+}
+
+.video-label {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.muted-badge, .screen-badge {
+    font-size: 13px;
+}
+
+.local-tile { border-color: rgba(108, 99, 255, 0.3); }
+
+/* ─── Chat Panel ──────────────────────────── */
+.chat-panel {
+    width: 300px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: rgba(15, 17, 32, 0.97);
+    border-left: 1px solid var(--border);
+    animation: fadeIn 0.2s ease;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-empty {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 40px;
+}
+
+.chat-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: 90%;
+}
+
+.chat-msg-me {
+    align-self: flex-end;
+}
+
+.chat-msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chat-msg-user {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.chat-msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.chat-msg-text {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    border-top-left-radius: 2px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.chat-msg-me .chat-msg-text {
+    background: var(--accent-light);
+    border-color: rgba(108, 99, 255, 0.3);
+    border-top-right-radius: 2px;
+    border-top-left-radius: 10px;
+}
+
+.chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.chat-input-row .input-field {
+    flex: 1;
+    height: 38px;
+    font-size: 13px;
+    padding: 8px 12px;
+}
+
+/* ─── Control Bar ─────────────────────────── */
+.control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px 20px;
+    background: rgba(10, 11, 20, 0.98);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    flex-shrink: 0;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ctrl-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 72px;
+    height: 64px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font);
+}
+
+.ctrl-icon { font-size: 20px; }
+
+.ctrl-label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.ctrl-btn-on {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.ctrl-btn-on:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(108, 99, 255, 0.4);
+}
+
+.ctrl-btn-off {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ctrl-btn-off:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.ctrl-btn-active {
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid rgba(108, 99, 255, 0.4);
+}
+
+.ctrl-btn-leave {
+    background: var(--red);
+    color: white;
+    border: none;
+    width: 80px;
+}
+
+.ctrl-btn-leave:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+}
+
+/* ─── Responsive ─────────────────────────── */
+@media (max-width: 768px) {
+    .chat-panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 50;
+        width: 280px;
+        border-left: 1px solid var(--border);
+    }
+
+    .ctrl-btn {
+        width: 56px;
+        height: 54px;
+    }
+
+    .ctrl-label { display: none; }
+    .room-header-actions .btn span:last-child { display: none; }
+}
+
+/* ─── Shared Notes, Tasks, and Subtitles Additions ───────────────────────── */
+
+.sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10, 11, 20, 0.4);
+    flex-shrink: 0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 6px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+    background: rgba(108, 99, 255, 0.05);
+}
+
+.tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.notes-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 10px;
+}
+
+.notes-textarea {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.tasks-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.task-item.completed {
+    border-color: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.02);
+}
+
+.task-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    accent-color: var(--green);
+}
+
+.task-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.task-title-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.task-item.completed .task-title-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.task-assignee-tag {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.subtitles-overlay {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    max-width: 80%;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 100;
+    pointer-events: none;
+    animation: fadeInUp 0.2s ease-out;
+}
+
+.subtitles-user {
+    color: var(--accent-light);
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}

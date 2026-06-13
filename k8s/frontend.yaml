@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intellmeet-frontend
+  labels:
+    app: intellmeet-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: intellmeet-frontend
+  template:
+    metadata:
+      labels:
+        app: intellmeet-frontend
+    spec:
+      containers:
+        - name: intellmeet-frontend
+          image: intellmeet-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: intellmeet-frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: intellmeet-frontend
+  ports:
+    - protocol: TCP
+      port: 5173
+      targetPort: 80

@@ -1,0 +1,6 @@
+/* App.css — minimal resets not in index.css */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

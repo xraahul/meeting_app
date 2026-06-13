@@ -1,0 +1,50 @@
+name: IntellMeet CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Server Dependencies
+        working-directory: ./server
+        run: npm ci
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Frontend Linting
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build Frontend Application
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          VITE_API_URL: /api
+          VITE_SOCKET_URL: /
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Server Image (Test)
+        working-directory: ./server
+        run: docker build -t intellmeet-server:test .
+
+      - name: Build Frontend Image (Test)
+        working-directory: ./frontend
+        run: docker build -t intellmeet-frontend:test --build-arg VITE_API_URL=/api --build-arg VITE_SOCKET_URL=/ .
