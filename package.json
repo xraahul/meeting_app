@@ -1,0 +1,11 @@
+{
+  "name": "intellmeet",
+  "private": true,
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "test": "npm run test:smoke --prefix server",
+    "lint": "npm run lint --prefix frontend"
+  }
+}

@@ -1,76 +1,186 @@
 # IntellMeet 📡
 
-IntellMeet is an AI-powered enterprise meeting and collaboration platform developed using the MERN stack. It enhances communication and productivity for modern remote and hybrid teams by providing real-time video conferencing, live chat, screen sharing, AI-generated meeting summaries, and collaborative team workspaces.
+AI-powered enterprise meeting and collaboration platform — real-time video (WebRTC), live chat, screen sharing, AI transcription & summaries, Kanban workspaces, and real-time notifications.
 
 ## Features
 
-- **Frictionless Authentication**: Username/password accounts, or join as an anonymous guest.
-- **Real-Time Video & Chat**: Powered by WebRTC and Socket.io.
-- **AI Meeting Summaries**: Automated transcript analysis to extract action items.
-- **Project Board**: Kanban-style task management for team coordination.
-- **Cloudinary Avatar Uploads**: Personalize your profile.
-- **High Performance**: Redis caching for rapid meeting load times and Express Rate Limiting for security.
+| Area | Capabilities |
+|------|-------------|
+| **Core** | React 19, TypeScript, Tailwind CSS, WebRTC video, Socket.io chat, screen share |
+| **AI** | OpenAI Whisper transcription, GPT/Gemini meeting summaries, action-item extraction |
+| **Collaboration** | Kanban board, in-meeting tasks, @mention notifications |
+| **Ops** | Docker multi-stage builds, Kubernetes + Helm, GitHub Actions CI/CD |
+| **Observability** | Prometheus metrics, Grafana dashboards, Sentry error tracking |
+| **Security** | JWT + refresh tokens, Helmet, rate limiting, OWASP ZAP in CI |
 
-## Tech Stack
+## Architecture
 
-- **Frontend**: React, Vite, React Router, Socket.io-client
-- **Backend**: Node.js, Express, MongoDB (Mongoose), Socket.io, WebRTC
-- **Caching**: Redis
-- **Media**: Cloudinary (Avatars), Multer
+```
+Browser (React/TS) ──WebRTC──► Peers
+        │ Socket.io / REST
+        ▼
+   Express API ──► MongoDB (meetings, users, tasks, notifications)
+        │           Redis (cache)
+        ├──► OpenAI (Whisper + GPT)
+        ├──► Cloudinary (avatars)
+        └──► Sentry (errors)
+```
 
-## Getting Started
+**Event-driven design**: Socket.io relays WebRTC signals, chat, notes, transcripts, task updates, and notifications in real time.
 
-### Prerequisites
+## Quick Start (Local)
 
-- Node.js (v16+)
-- Docker & Docker Compose (for running Redis and MongoDB locally)
-- Cloudinary Account
-- OpenAI API Key (for AI summaries)
+```bash
+# 1. Infrastructure
+docker compose up -d
 
-### Installation
+# 2. Environment
+cp server/.env.example server/.env
+cp frontend/.env.example frontend/.env
+# Edit secrets (JWT, OpenAI, Cloudinary)
 
-1. **Clone the repository**
-2. **Start Local Services (MongoDB & Redis)**
-   ```bash
-   docker-compose up -d
-   ```
-3. **Setup Environment Variables**
-   Create a `.env` file in the `server` directory:
-   ```env
-   PORT=5000
-   MONGO_URI=mongodb://127.0.0.1:27017/intellmeet
-   JWT_ACCESS_SECRET=your_jwt_secret
-   REDIS_URL=redis://127.0.0.1:6379
-   CLOUDINARY_CLOUD_NAME=your_cloud_name
-   CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
-   OPENAI_API_KEY=your_openai_key
-   ```
-   Create a `.env` file in the `frontend` directory:
-   ```env
-   VITE_API_URL=http://localhost:5000/api
-   VITE_SOCKET_URL=http://localhost:5000
-   ```
+# 3. Dev mode
+cd server && npm install && npm run dev
+cd frontend && npm install && npm run dev
+```
 
-4. **Install Dependencies**
-   ```bash
-   cd server && npm install
-   cd ../frontend && npm install
-   ```
+Open **http://localhost:5173**
 
-5. **Start the Application**
-   ```bash
-   # Terminal 1 (Backend)
-   cd server
-   npm start
+### Full stack via Docker
 
-   # Terminal 2 (Frontend)
-   cd frontend
-   npm run dev
-   ```
+```bash
+docker compose up -d --build
+# Frontend: http://localhost:5173  (nginx proxies /api and /socket.io)
+# API health: http://localhost:5000/health
+```
 
-6. Open `http://localhost:5173` in your browser.
+### Monitoring stack
 
-## Week 1 Checkpoint
+```bash
+docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+# Prometheus: http://localhost:9090
+# Grafana:    http://localhost:3000  (admin / admin)
+```
 
-This repository has completed the Week 1 roadmap, including the MERN boilerplate, WebRTC/Socket.io signaling, Authentication (JWT), Redis caching, and Cloudinary media uploads.
+## Environment Variables
+
+See `server/.env.example` and `frontend/.env.example`.
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `JWT_ACCESS_SECRET` | Yes | Access token signing |
+| `JWT_REFRESH_SECRET` | Yes | Refresh token signing |
+| `MONGO_URI` | Yes | MongoDB connection |
+| `REDIS_URL` | Yes | Redis cache |
+| `CLIENT_URL` | Yes | CORS origin |
+| `OPENAI_API_KEY` | No | Whisper + GPT summaries |
+| `SENTRY_DSN` | No | Error tracking |
+
+## Testing
+
+```bash
+# Smoke tests (server must be running)
+cd server && npm run test:smoke
+
+# Load testing (requires Apache JMeter)
+jmeter -n -t load-tests/intellmeet-load.jmx -Jhost=localhost -Jport=5000 -l results.jtl
+
+# Security scan (requires Docker)
+bash security/zap-baseline.sh http://localhost:5173
+```
+
+## CI/CD Pipeline
+
+GitHub Actions (`.github/workflows/ci-cd.yml`):
+
+1. **Lint & Build** — ESLint, TypeScript build, npm audit
+2. **Docker Build** — Multi-stage server + frontend images
+3. **Integration Tests** — Docker Compose + smoke tests
+4. **Security Scan** — OWASP ZAP baseline (main branch)
+5. **Publish** — Push images to GHCR
+6. **Deploy** — Optional Render deploy hook
+
+## Kubernetes & Helm
+
+```bash
+# Raw manifests
+kubectl apply -f k8s/
+
+# Helm (recommended)
+helm upgrade --install intellmeet ./helm/intellmeet \
+  --namespace intellmeet --create-namespace \
+  --set secrets.jwtAccessSecret=YOUR_SECRET \
+  --set ingress.host=meet.example.com
+```
+
+Includes HPA (2–8 server replicas), ingress with WebSocket support, and Prometheus scrape annotations.
+
+## Cloud Deployment
+
+| Platform | Config | Notes |
+|----------|--------|-------|
+| **Render** | `deploy/render.yaml` | Web service + MongoDB + Redis |
+| **Vercel + Render** | `deploy/vercel.json` | Static frontend + API proxy |
+| **AWS** | `deploy/AWS.md` | ECS Fargate or EKS + Helm |
+
+Set all secrets in the platform's secret manager — never in source control.
+
+## PDF Export & Reports
+
+From **Dashboard → Meeting History → Open Details**:
+
+- **Export JSON** — full meeting report (summary, tasks, transcript)
+- **Print / Save PDF** — browser print-to-PDF for shareable reports
+
+## Demo Video
+
+Record a walkthrough covering:
+
+1. Sign up / login → create meeting → join room
+2. WebRTC video, chat with `@mention`, screen share
+3. Live captions + recording → Whisper transcript in history
+4. End meeting → AI summary + action items on Kanban
+5. Notification bell + Grafana dashboard (optional)
+
+Suggested tools: OBS Studio, Loom, or Windows Game Bar.
+
+## Challenges & Learnings
+
+| Challenge | Solution |
+|-----------|----------|
+| WebRTC NAT traversal | STUN servers + Socket.io signaling relay |
+| Real-time state sync | Event-driven Socket.io channels (room, team, user) |
+| AI latency on long meetings | Whisper post-recording + incremental live captions |
+| Circular deps (Socket + controllers) | Shared `config/socket.js` registry |
+| TypeScript migration at scale | Shared types + incremental strict typing |
+
+## Industry Best Practices Applied
+
+- **Multi-stage Docker builds** — minimal production images, non-root users
+- **12-factor config** — environment-based secrets
+- **CI/CD gates** — lint → build → test → scan → deploy
+- **Observability** — `/health`, `/metrics`, Sentry, Grafana
+- **Defense in depth** — Helmet, CORS, rate limits, OWASP ZAP
+
+## Security & Privacy
+
+See [SECURITY.md](./SECURITY.md) for JWT details, OWASP Top 10 mitigations, WebRTC encryption notes, and secrets management.
+
+## Project Structure
+
+```
+meet/
+├── frontend/          React 19 + TypeScript + Tailwind
+├── server/            Express + Socket.io + AI services
+├── helm/intellmeet/   Helm chart
+├── k8s/               Kubernetes manifests
+├── monitoring/        Prometheus + Grafana config
+├── load-tests/        JMeter plans
+├── security/          OWASP ZAP scripts
+├── deploy/            Vercel, Render, AWS guides
+└── .github/workflows/ CI/CD pipeline
+```
+
+## License
+
+ISC

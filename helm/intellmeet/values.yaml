@@ -1,0 +1,66 @@
+global:
+  imagePullPolicy: IfNotPresent
+
+namespace: intellmeet
+
+server:
+  replicaCount: 2
+  image: ghcr.io/intellmeet/intellmeet-server:latest
+  port: 5000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+
+frontend:
+  replicaCount: 2
+  image: ghcr.io/intellmeet/intellmeet-frontend:latest
+  port: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+mongodb:
+  enabled: true
+  image: mongo:6.0
+  storage: 10Gi
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+
+ingress:
+  enabled: true
+  className: nginx
+  host: intellmeet.example.com
+  tls: false
+
+secrets:
+  jwtAccessSecret: change-me-access
+  jwtRefreshSecret: change-me-refresh
+  openaiApiKey: ""
+  geminiApiKey: ""
+  sentryDsn: ""
+  cloudinaryCloudName: ""
+  cloudinaryApiKey: ""
+  cloudinaryApiSecret: ""
+
+env:
+  clientUrl: https://intellmeet.example.com
+  nodeEnv: production
+
+monitoring:
+  prometheusScrape: true
+  scrapeInterval: 15s

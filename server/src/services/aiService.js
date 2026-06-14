@@ -13,7 +13,8 @@ export const generateAISummary = async (meetingTitle, transcript) => {
 
     const participants = [...new Set(transcript.map((t) => t.username || "Participant"))].filter(Boolean);
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY;
+    const useOpenAI = !!process.env.OPENAI_API_KEY;
 
     if (apiKey) {
         try {
@@ -41,19 +42,40 @@ export const generateAISummary = async (meetingTitle, transcript) => {
             ${transcriptText || "No discussion recorded."}
             `;
 
-            const url = `https://generativetext.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const response = await axios.post(url, {
-                contents: [{ parts: [{ text: prompt }] }]
-            });
+            if (useOpenAI) {
+                const response = await axios.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    {
+                        model: "gpt-4o-mini",
+                        messages: [{ role: "user", content: prompt }],
+                        response_format: { type: "json_object" }
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${apiKey}`,
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+                const rawText = response.data?.choices?.[0]?.message?.content;
+                if (rawText) {
+                    const cleanedText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                    return JSON.parse(cleanedText);
+                }
+            } else {
+                const url = `https://generativetext.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                const response = await axios.post(url, {
+                    contents: [{ parts: [{ text: prompt }] }]
+                });
 
-            const rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (rawText) {
-                // Strip markdown backticks if the AI output includes them
-                const cleanedText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-                return JSON.parse(cleanedText);
+                const rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
+                    const cleanedText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                    return JSON.parse(cleanedText);
+                }
             }
         } catch (error) {
-            console.error("Gemini API Error, falling back to NLP summarizer:", error.message);
+            console.error(`${useOpenAI ? "OpenAI" : "Gemini"} API Error, falling back to NLP summarizer:`, error.message);
         }
     }
 

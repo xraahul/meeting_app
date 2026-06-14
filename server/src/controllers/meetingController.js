@@ -1,10 +1,15 @@
+import path from "path";
+
 import { v4 as uuidv4 } from "uuid";
 
 import Meeting from "../models/Meeting.js";
 import Task from "../models/Task.js";
 import User from "../models/User.js";
 import { generateAISummary } from "../services/aiService.js";
+import { transcribeWithWhisper } from "../services/whisperService.js";
+import { notifyUserByUsername } from "../services/notificationService.js";
 import redisClient from "../config/redis.js";
+import { getIO } from "../config/socket.js";
 
 export const createMeeting = async (req, res) => {
 
@@ -139,7 +144,21 @@ export const endMeeting = async (req, res) => {
                 assignee: item.assignee || "Unassigned",
                 status: "pending"
             }));
-            await Task.insertMany(tasksToInsert);
+            const createdTasks = await Task.insertMany(tasksToInsert);
+
+            for (const task of createdTasks) {
+                await notifyUserByUsername({
+                    username: task.assignee,
+                    type: "action_item",
+                    title: "New action item from meeting",
+                    message: `"${task.title}" was extracted from "${meeting.title}"`,
+                    metadata: {
+                        meetingId: meeting.meetingId,
+                        taskId: task._id.toString()
+                    },
+                    io: getIO()
+                });
+            }
         }
 
         res.status(200).json({
@@ -169,6 +188,23 @@ export const uploadRecording = async (req, res) => {
         const recordingUrl = `${protocol}://${hostname}/uploads/recordings/${req.file.filename}`;
 
         meeting.recordingUrl = recordingUrl;
+
+        // Whisper transcription from uploaded recording
+        const speakerName = req.user
+            ? (await User.findById(req.user.userId))?.username || "Host"
+            : "Host";
+
+        try {
+            const filePath = path.join(process.cwd(), "uploads", "recordings", req.file.filename);
+            const whisperTranscript = await transcribeWithWhisper(filePath, speakerName);
+
+            if (whisperTranscript.length > 0) {
+                meeting.transcript.push(...whisperTranscript);
+            }
+        } catch (whisperErr) {
+            console.error("Whisper transcription failed:", whisperErr.message);
+        }
+
         await meeting.save();
 
         if (redisClient && redisClient.isReady) {
@@ -177,7 +213,8 @@ export const uploadRecording = async (req, res) => {
 
         res.status(200).json({
             message: "Recording uploaded successfully",
-            recordingUrl
+            recordingUrl,
+            transcriptAdded: meeting.transcript.length
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -242,6 +279,19 @@ export const createOrUpdateTask = async (req, res) => {
             assignee: assignee || "Unassigned",
             status: status || "todo",
             team: teamName
+        });
+
+        await notifyUserByUsername({
+            username: task.assignee,
+            type: "task_assigned",
+            title: "Task assigned to you",
+            message: `"${task.title}" was assigned to you`,
+            metadata: {
+                meetingId: task.meetingId,
+                taskId: task._id.toString(),
+                fromUsername: user?.username || ""
+            },
+            io: getIO()
         });
 
         res.status(201).json(task);

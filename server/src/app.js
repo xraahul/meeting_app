@@ -3,90 +3,94 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
 
 import db from "./config/db.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import meetingRoutes from "./routes/meetingRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import Sentry from "./instrument.js";
+import { register, httpRequestsTotal, httpRequestDuration } from "./metrics.js";
 
 dotenv.config();
 
-// Connect to database
 db();
 
 const app = express();
 
-// ─── Security & Parsing Middleware (MUST be before routes) ────────────────────
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 500,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many requests, please try again later." },
+});
+
 app.use(
     cors({
         origin: [
             process.env.CLIENT_URL,
             "http://localhost:5173",
-            "http://127.0.0.1:5173"
+            "http://127.0.0.1:5173",
         ].filter(Boolean),
         credentials: true,
     })
 );
 
-app.use(helmet({
-    crossOriginResourcePolicy: false // Allow static files to be requested across origins
-}));
-app.use(express.json());
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
+app.use("/api", apiLimiter);
 app.use("/uploads", express.static("uploads"));
 
-// ─── Prometheus Custom Metrics Middleware ────────────────────────────────────
-let requestCount = 0;
-let requestDurationSum = 0;
-let errorCount = 0;
-
 app.use((req, res, next) => {
-    if (req.path === "/metrics") return next();
-    requestCount++;
-    const start = Date.now();
+    if (req.path === "/metrics" || req.path === "/health") return next();
+
+    const start = process.hrtime.bigint();
     res.on("finish", () => {
-        const duration = (Date.now() - start) / 1000;
-        requestDurationSum += duration;
-        if (res.statusCode >= 400) {
-            errorCount++;
-        }
+        const route = req.route?.path || req.path;
+        const labels = {
+            method: req.method,
+            route: route.replace(/\d+/g, ":id"),
+            status: String(res.statusCode),
+        };
+        httpRequestsTotal.inc(labels);
+        const durationNs = Number(process.hrtime.bigint() - start);
+        httpRequestDuration.observe(labels, durationNs / 1e9);
     });
     next();
 });
 
-// Metrics scraping endpoint
-app.get("/metrics", (req, res) => {
-    res.set("Content-Type", "text/plain; version=0.0.4; charset=utf-8");
-    res.send(`# HELP http_requests_total Total number of HTTP requests.
-# TYPE http_requests_total counter
-http_requests_total ${requestCount}
-
-# HELP http_request_duration_seconds_sum Total response latency.
-# TYPE http_request_duration_seconds_sum counter
-http_request_duration_seconds_sum ${requestDurationSum}
-
-# HELP http_requests_failed_total Total failed HTTP requests.
-# TYPE http_requests_failed_total counter
-http_requests_failed_total ${errorCount}
-`);
+app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
+app.get("/metrics", async (_req, res) => {
+    res.set("Content-Type", register.contentType);
+    res.end(await register.metrics());
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/meetings", meetingRoutes);
+app.use("/api/notifications", notificationRoutes);
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
     res.json({ message: "IntellMeet API Running ✓" });
 });
 
-// ─── Sentry Error Handler Stub ───────────────────────────────────────────────
-app.use((err, req, res, next) => {
-    console.error("Sentry Captured Exception:", err.message);
-    if (process.env.SENTRY_DSN) {
-        // Here you would hook real Sentry SDK client.captureException(err)
-    }
-    res.status(500).json({ message: err.message || "Internal Server Error" });
+if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+}
+
+app.use((err, _req, res, _next) => {
+    console.error("Unhandled error:", err.message);
+    res.status(err.status || 500).json({
+        message: process.env.NODE_ENV === "production"
+            ? "Internal Server Error"
+            : err.message || "Internal Server Error",
+    });
 });
 
 export default app;

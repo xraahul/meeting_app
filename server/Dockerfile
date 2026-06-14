@@ -1,32 +1,29 @@
-# Stage 1: Build & Install Dependencies
-FROM node:20-alpine AS builder
-
+# ── Stage 1: Production dependencies ──────────────────────────────────────────
+FROM node:20-alpine AS deps
 WORKDIR /usr/src/app
-
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --omit=dev
 
-# Copy application source
-COPY . .
-
-# Stage 2: Production release
+# ── Stage 2: Production runtime ───────────────────────────────────────────────
 FROM node:20-alpine AS runner
-
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-# Only install production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 -G nodejs
 
-# Copy built code from builder (avoiding node_modules copy)
-COPY --from=builder /usr/src/app/src ./src
-COPY --from=builder /usr/src/app/package.json ./
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY package.json ./
+COPY src ./src
 
-# Ensure storage directories exist with write access
-RUN mkdir -p uploads && chmod 777 uploads
+RUN mkdir -p uploads/recordings && chown -R nodejs:nodejs uploads \
+    && apk add --no-cache wget
+
+USER nodejs
 
 EXPOSE 5000
 
-CMD ["npm", "start"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:5000/ || exit 1
+
+CMD ["node", "src/server.js"]

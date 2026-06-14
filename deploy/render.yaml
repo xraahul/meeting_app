@@ -1,0 +1,63 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: intellmeet-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        fromDatabase:
+          name: intellmeet-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: intellmeet-redis
+          type: redis
+          property: connectionString
+      - key: CLIENT_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  - type: web
+    name: intellmeet-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: starter
+    dockerCommand: ""
+    envVars:
+      - key: VITE_API_URL
+        value: /api
+      - key: VITE_SOCKET_URL
+        value: /
+
+  - type: redis
+    name: intellmeet-redis
+    plan: starter
+    ipAllowList: []
+
+databases:
+  - name: intellmeet-db
+    plan: starter

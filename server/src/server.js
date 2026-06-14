@@ -1,6 +1,10 @@
+import "./instrument.js";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
 import app from "./app.js";
+import { notifyMentions } from "./services/notificationService.js";
+import { setIO } from "./config/socket.js";
+import { activeConnections } from "./metrics.js";
 
 dotenv.config();
 
@@ -10,7 +14,7 @@ const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
 
-const io = new Server(server, {
+export const io = new Server(server, {
     cors: {
         origin: [
             process.env.CLIENT_URL,
@@ -22,10 +26,13 @@ const io = new Server(server, {
     }
 });
 
+setIO(io);
+
 // Track which room each socket is in
 const socketRooms = new Map();
 
 io.on("connection", (socket) => {
+    activeConnections.inc();
 
     console.log(`✅ User connected: ${socket.id}`);
 
@@ -58,14 +65,33 @@ io.on("connection", (socket) => {
         });
     });
 
-    // ─── Chat message relay ───────────────────────────────────────────────────
-    socket.on("chat-message", ({ roomId, message, username }) => {
+    // ─── User notification channel ────────────────────────────────────────────
+    socket.on("join-user", (userId) => {
+        if (userId) {
+            socket.join(`user:${userId}`);
+            console.log(`🔔 Socket ${socket.id} joined user channel: user:${userId}`);
+        }
+    });
+
+    // ─── Chat message relay + @mention notifications ─────────────────────────
+    socket.on("chat-message", async ({ roomId, message, username }) => {
         io.to(roomId).emit("chat-message", {
             socketId: socket.id,
             username,
             message,
             timestamp: new Date().toISOString(),
         });
+
+        try {
+            await notifyMentions({
+                message,
+                fromUsername: username,
+                meetingId: roomId,
+                io
+            });
+        } catch (err) {
+            console.error("Mention notification error:", err.message);
+        }
     });
 
     // ─── Shared Notes sync ────────────────────────────────────────────────────
@@ -119,6 +145,7 @@ io.on("connection", (socket) => {
 
     // ─── Disconnect ───────────────────────────────────────────────────────────
     socket.on("disconnect", () => {
+        activeConnections.dec();
         const roomInfo = socketRooms.get(socket.id);
 
         if (roomInfo) {

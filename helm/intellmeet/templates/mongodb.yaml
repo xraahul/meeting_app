@@ -1,0 +1,40 @@
+{{- if .Values.mongodb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "intellmeet.fullname" . }}-mongodb
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "intellmeet.fullname" . }}-mongodb
+  template:
+    metadata:
+      labels:
+        app: {{ include "intellmeet.fullname" . }}-mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: {{ .Values.mongodb.image }}
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "intellmeet.fullname" . }}-mongodb
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ include "intellmeet.fullname" . }}-mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+{{- end }}

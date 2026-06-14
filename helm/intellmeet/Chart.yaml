@@ -1,0 +1,12 @@
+apiVersion: v2
+name: intellmeet
+description: IntellMeet — AI-powered enterprise meeting platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - meetings
+  - webrtc
+  - collaboration
+maintainers:
+  - name: IntellMeet Team
