@@ -68,7 +68,9 @@ export const login = async (req, res) => {
         }
 
         // Find user
-        const user = await User.findOne({ username });
+        const user = await User.findOne({
+            $or: [{ username: username }, { email: username }]
+        });
 
         if (!user) {
             return res.status(400).json({

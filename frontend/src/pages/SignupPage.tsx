@@ -72,8 +72,8 @@ export default function SignupPage() {
         <div className="auth-page">
             <div className="auth-card">
 
-                <Link to="/" className="auth-logo">
-                    <span className="auth-logo-icon">📡</span>
+                <Link to="/" className="auth-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img src="/logo.png" alt="IntellMeet Logo" style={{ height: '40px', objectFit: 'contain', borderRadius: '50%' }} />
                     <span className="auth-logo-text">IntellMeet</span>
                 </Link>
 

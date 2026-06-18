@@ -17,6 +17,8 @@ import {
     getTeamTasks
 } from "../controllers/meetingController.js";
 
+import { summarizeMeeting } from "../controllers/aiController.js";
+
 import recordingUpload from "../middleware/recordingUpload.js";
 
 const router = express.Router();
@@ -34,6 +36,8 @@ router.get("/:id", optionalProtect, getMeetingById);
 router.delete("/:id", protect, deleteMeeting);
 
 router.post("/:id/end", optionalProtect, endMeeting);
+
+router.post("/:id/summarize", optionalProtect, summarizeMeeting);
 
 router.post("/:id/recording", optionalProtect, recordingUpload.single("recording"), uploadRecording);
 

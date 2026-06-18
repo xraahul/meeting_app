@@ -5,6 +5,7 @@ import io, { type Socket } from "socket.io-client";
 import Peer from "simple-peer";
 import type { ChatMessage, RemoteStream, Task } from "../types";
 import api from "../api/api";
+import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, PhoneOff, Users, CircleDot } from "lucide-react";
 import "./MeetingRoom.css";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
@@ -257,19 +258,29 @@ export default function MeetingRoom() {
     // ── Video/Audio Controls ──────────────────────────────────────────────────
 
     const toggleMute = () => {
-        const track = localStreamRef.current?.getAudioTracks()[0];
-        if (track) {
-            track.enabled = !track.enabled;
-            setIsMuted(!track.enabled);
-        }
+        setIsMuted((prev) => {
+            const newMuted = !prev;
+            if (localStreamRef.current) {
+                const track = localStreamRef.current.getAudioTracks()[0];
+                if (track) {
+                    track.enabled = !newMuted;
+                }
+            }
+            return newMuted;
+        });
     };
 
     const toggleCam = () => {
-        const track = localStreamRef.current?.getVideoTracks()[0];
-        if (track) {
-            track.enabled = !track.enabled;
-            setIsCamOff(!track.enabled);
-        }
+        setIsCamOff((prev) => {
+            const newCamOff = !prev;
+            if (localStreamRef.current) {
+                const track = localStreamRef.current.getVideoTracks()[0];
+                if (track) {
+                    track.enabled = !newCamOff;
+                }
+            }
+            return newCamOff;
+        });
     };
 
     const toggleScreenShare = async () => {
@@ -508,6 +519,11 @@ export default function MeetingRoom() {
         try {
             await api.post(`/meetings/${roomId}/end`);
             
+            // Trigger AI Summary Generation
+            console.log("Triggering AI Summarization...");
+            // We do not await this, so it runs in background and notifies users later
+            api.post(`/meetings/${roomId}/summarize`).catch(e => console.error("Summary failed", e));
+            
             leaveMeeting();
         } catch (err) {
             console.error("Failed to end meeting:", err);
@@ -558,7 +574,9 @@ export default function MeetingRoom() {
             {/* ── Top Bar ── */}
             <header className="room-header">
                 <div className="room-info">
-                    <span className="room-logo">📡</span>
+                    <span className="room-logo" style={{ display: 'flex', alignItems: 'center' }}>
+                        <img src="/logo.png" alt="IntellMeet Logo" style={{ height: '32px', borderRadius: '50%' }} />
+                    </span>
                     <div>
                         <div className="room-id-label">
                             Room ID: <code>{roomId?.slice(0, 8)}…</code>
@@ -817,7 +835,7 @@ export default function MeetingRoom() {
                         onClick={toggleMute}
                         title={isMuted ? "Unmute" : "Mute"}
                     >
-                        <span className="ctrl-icon">{isMuted ? "🔇" : "🎤"}</span>
+                        <span className="ctrl-icon">{isMuted ? <MicOff size={20} /> : <Mic size={20} />}</span>
                         <span className="ctrl-label">{isMuted ? "Unmute" : "Mute"}</span>
                     </button>
 
@@ -827,7 +845,7 @@ export default function MeetingRoom() {
                         onClick={toggleCam}
                         title={isCamOff ? "Turn on camera" : "Turn off camera"}
                     >
-                        <span className="ctrl-icon">{isCamOff ? "📷" : "📸"}</span>
+                        <span className="ctrl-icon">{isCamOff ? <VideoOff size={20} /> : <Video size={20} />}</span>
                         <span className="ctrl-label">{isCamOff ? "Start Cam" : "Stop Cam"}</span>
                     </button>
 
@@ -837,7 +855,7 @@ export default function MeetingRoom() {
                         onClick={toggleScreenShare}
                         title="Share screen"
                     >
-                        <span className="ctrl-icon">🖥️</span>
+                        <span className="ctrl-icon"><MonitorUp size={20} /></span>
                         <span className="ctrl-label">{isSharingScreen ? "Stop Share" : "Share"}</span>
                     </button>
 
@@ -848,7 +866,7 @@ export default function MeetingRoom() {
                         onClick={toggleTranscription}
                         title="Toggle live transcription subtitles"
                     >
-                        <span className="ctrl-icon">💬</span>
+                        <span className="ctrl-icon"><MessageSquare size={20} /></span>
                         <span className="ctrl-label">{isTranscribing ? "Captions On" : "Captions"}</span>
                     </button>
 
@@ -860,7 +878,7 @@ export default function MeetingRoom() {
                         title="Record meeting local & cloud storage"
                         style={{ border: isRecording ? "1px solid rgba(239,68,68,0.4)" : "1px solid var(--border)" }}
                     >
-                        <span className="ctrl-icon" style={{ color: isRecording ? "var(--red)" : "inherit" }}>⏺️</span>
+                        <span className="ctrl-icon" style={{ color: isRecording ? "var(--red)" : "inherit" }}><CircleDot size={20} /></span>
                         <span className="ctrl-label">{isRecording ? "Stop Rec" : "Record"}</span>
                     </button>
 
@@ -870,7 +888,7 @@ export default function MeetingRoom() {
                         onClick={() => setChatOpen(!chatOpen)}
                         title="Collaboration"
                     >
-                        <span className="ctrl-icon">👥</span>
+                        <span className="ctrl-icon"><Users size={20} /></span>
                         <span className="ctrl-label">Collaborate</span>
                     </button>
 
@@ -880,7 +898,7 @@ export default function MeetingRoom() {
                         onClick={leaveMeeting}
                         title="Leave meeting"
                     >
-                        <span className="ctrl-icon">📞</span>
+                        <span className="ctrl-icon"><PhoneOff size={20} /></span>
                         <span className="ctrl-label">Leave</span>
                     </button>
                 </div>

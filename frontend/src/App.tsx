@@ -7,8 +7,10 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import Dashboard from "./pages/Dashboard";
 import MeetingRoom from "./pages/MeetingRoom";
+import Workspace from "./pages/Workspace";
 import "./App.css";
 import type { ReactNode } from "react";
+import { Agentation } from "agentation";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     const { isLoggedIn } = useAuth();
@@ -51,6 +53,15 @@ const AppRoutes = () => (
             }
         />
 
+        <Route
+            path="/workspaces"
+            element={
+                <ProtectedRoute>
+                    <Workspace />
+                </ProtectedRoute>
+            }
+        />
+
         <Route path="/room/:roomId" element={<MeetingRoom />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -59,7 +70,8 @@ const AppRoutes = () => (
 
 export default function App() {
     return (
-        <BrowserRouter>
+        <>
+            <BrowserRouter>
             <AuthProvider>
                 <ThemeProvider>
                     <NotificationProvider>
@@ -68,5 +80,7 @@ export default function App() {
                 </ThemeProvider>
             </AuthProvider>
         </BrowserRouter>
+        {import.meta.env.DEV && <Agentation />}
+        </>
     );
 }

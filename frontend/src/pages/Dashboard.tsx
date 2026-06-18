@@ -431,7 +431,7 @@ export default function Dashboard() {
             {/* ── Sidebar Navigation ── */}
             <aside className="sidebar">
                 <div className="sidebar-logo flex items-center gap-2">
-                    <span>📡</span>
+                    <img src="/logo.png" alt="IntellMeet Logo" style={{ height: '32px', borderRadius: '50%' }} />
                     <span>IntellMeet</span>
                     <div className="ml-auto">
                         <NotificationBell />

@@ -1,36 +1,37 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Mic, Video, MonitorUp, MessageSquare, PhoneOff, Lock, Zap, Users } from "lucide-react";
 import api from "../api/api";
 import "./LandingPage.css";
 
 const features = [
     {
-        icon: "🎥",
+        icon: <Video size={32} strokeWidth={1.5} />,
         title: "Crystal Clear Video",
         desc: "HD video calls powered by WebRTC — no plugins, no downloads. Works right in your browser.",
     },
     {
-        icon: "🔒",
+        icon: <Lock size={32} strokeWidth={1.5} />,
         title: "Secure & Private",
         desc: "End-to-end encrypted peer-to-peer connections. Your conversations stay between you.",
     },
     {
-        icon: "⚡",
+        icon: <Zap size={32} strokeWidth={1.5} />,
         title: "Instant Meetings",
         desc: "Create a room in seconds. Share the link. Done. No scheduling, no hassle.",
     },
     {
-        icon: "💬",
+        icon: <MessageSquare size={32} strokeWidth={1.5} />,
         title: "In-Meeting Chat",
         desc: "Share links, notes, and messages with built-in chat — all without leaving the room.",
     },
     {
-        icon: "🖥️",
+        icon: <MonitorUp size={32} strokeWidth={1.5} />,
         title: "Screen Sharing",
         desc: "Present your screen with one click. Perfect for demos, code reviews, and presentations.",
     },
     {
-        icon: "👥",
+        icon: <Users size={32} strokeWidth={1.5} />,
         title: "Multi-Participant",
         desc: "Invite your whole team. Everyone can join, speak, and collaborate seamlessly.",
     },
@@ -65,11 +66,11 @@ export default function LandingPage() {
             {/* ── Navbar ── */}
             <nav className="landing-nav">
                 <div className="nav-logo">
-                    <span className="logo-icon">📡</span>
+                    <img src="/logo.png" alt="IntellMeet Logo" style={{ height: '32px', objectFit: 'contain', marginRight: '8px', borderRadius: '50%' }} />
                     <span className="logo-text">IntellMeet</span>
                 </div>
                 <div className="nav-links">
-                    <Link to="/login" className="btn btn-secondary">Sign In</Link>
+                    <Link to="/login" className="btn btn-primary">Sign In</Link>
                     <Link to="/signup" className="btn btn-primary">Get Started</Link>
                 </div>
             </nav>
@@ -88,7 +89,7 @@ export default function LandingPage() {
                     </div>
 
                     <h1 className="hero-title">
-                        Video meetings that
+                        Video meetings that{" "}
                         <br />
                         <span className="gradient-text">just work</span>
                     </h1>
@@ -100,20 +101,20 @@ export default function LandingPage() {
 
                     <div className="hero-cta" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start", width: "100%", maxWidth: "420px" }}>
                         <div style={{ display: "flex", gap: "10px", width: "100%" }}>
-                            <button onClick={handleInstantMeeting} className="btn btn-primary btn-lg" style={{ flex: 1, whiteSpace: "nowrap" }} disabled={starting}>
+                            <button onClick={handleInstantMeeting} className="btn btn-cyan btn-lg" style={{ flex: 1, whiteSpace: "nowrap" }} disabled={starting}>
                                 {starting ? <span className="spinner" /> : "⚡ Start Instant Meeting"}
                             </button>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
                             <input
                                 type="text"
-                                className="input-field"
+                                className="input-field meeting-code-input"
                                 placeholder="Enter meeting code..."
                                 value={joinCode}
                                 onChange={(e) => setJoinCode(e.target.value)}
                                 style={{ flex: 1, height: "48px" }}
                             />
-                            <button onClick={handleJoinMeeting} className="btn btn-secondary btn-lg" disabled={!joinCode.trim()}>
+                            <button onClick={handleJoinMeeting} className="btn btn-primary btn-lg" style={{ fontSize: "18px" }} disabled={!joinCode.trim()}>
                                 Join
                             </button>
                         </div>
@@ -151,27 +152,27 @@ export default function LandingPage() {
                         </div>
                         <div className="mock-videos">
                             <div className="mock-video mock-video-main">
-                                <div className="mock-avatar">👩‍💼</div>
-                                <div className="mock-name">Sarah K.</div>
+                                <div className="mock-avatar">🧑</div>
+                                <div className="mock-name">Person 1</div>
                                 <div className="mock-speaking-ring" />
                             </div>
                             <div className="mock-video-grid">
                                 <div className="mock-video mock-video-sm">
-                                    <div className="mock-avatar">👨‍💻</div>
-                                    <div className="mock-name">Alex M.</div>
+                                    <div className="mock-avatar">🧑</div>
+                                    <div className="mock-name">Person 2</div>
                                 </div>
                                 <div className="mock-video mock-video-sm">
-                                    <div className="mock-avatar">🧑‍🎨</div>
-                                    <div className="mock-name">You</div>
+                                    <div className="mock-avatar">🧑</div>
+                                    <div className="mock-name">Me</div>
                                 </div>
                             </div>
                         </div>
                         <div className="mock-controls">
-                            <div className="mock-ctrl active">🎤</div>
-                            <div className="mock-ctrl active">📷</div>
-                            <div className="mock-ctrl">🖥️</div>
-                            <div className="mock-ctrl">💬</div>
-                            <div className="mock-ctrl danger">📞</div>
+                            <div className="mock-ctrl active"><Mic size={18} /></div>
+                            <div className="mock-ctrl active"><Video size={18} /></div>
+                            <div className="mock-ctrl"><MonitorUp size={18} /></div>
+                            <div className="mock-ctrl"><MessageSquare size={18} /></div>
+                            <div className="mock-ctrl danger"><PhoneOff size={18} /></div>
                         </div>
                     </div>
                 </div>
@@ -210,7 +211,10 @@ export default function LandingPage() {
 
             {/* ── Footer ── */}
             <footer className="landing-footer">
-                <span className="logo-text" style={{ fontSize: "14px" }}>📡 IntellMeet</span>
+                <span className="logo-text" style={{ fontSize: "14px", display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img src="/logo.png" alt="IntellMeet Logo" style={{ height: '20px', borderRadius: '50%' }} />
+                    IntellMeet
+                </span>
                 <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>
                     Built with WebRTC · Secure · Free
                 </span>
