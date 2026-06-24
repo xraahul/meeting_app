@@ -74,7 +74,7 @@
 .hero-orb-1 {
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, #0d9488, transparent);
+    background: radial-gradient(circle, var(--accent), transparent);
     top: -100px;
     left: -100px;
     animation: float 8s ease-in-out infinite;
@@ -83,7 +83,7 @@
 .hero-orb-2 {
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, #06b6d4, transparent);
+    background: radial-gradient(circle, var(--accent-2), transparent);
     bottom: -80px;
     right: 10%;
     animation: float 10s ease-in-out infinite reverse;
@@ -92,7 +92,7 @@
 .hero-orb-3 {
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, #14b8a6, transparent);
+    background: radial-gradient(circle, #ec4899, transparent);
     top: 30%;
     right: 20%;
     animation: float 12s ease-in-out infinite;
@@ -156,9 +156,9 @@
 .stat-value {
     font-size: 32px;
     font-weight: 900;
-    color: #06b6d4; /* Vibrant Cyan */
+    color: var(--accent);
     letter-spacing: -0.03em;
-    text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+    text-shadow: 0 0 20px var(--accent-glow);
 }
 
 .stat-label {
@@ -388,10 +388,10 @@
     font-size: 18px !important;
     font-weight: 700 !important;
     letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #06b6d4, #0ea5e9) !important;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
     color: #ffffff !important;
     border: none !important;
-    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.35) !important;
+    box-shadow: 0 8px 20px var(--accent-glow) !important;
     text-transform: uppercase;
     padding: 16px 36px !important;
     border-radius: 50px !important;
@@ -400,8 +400,8 @@
 
 #cta-banner-btn:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 12px 28px rgba(6, 182, 212, 0.5) !important;
-    background: linear-gradient(135deg, #0891b2, #0284c7) !important;
+    box-shadow: 0 12px 28px var(--accent-glow) !important;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent)) !important;
 }
 
 /* ─── Footer ─────────────────────────────── */

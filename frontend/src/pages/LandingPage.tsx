@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mic, Video, MonitorUp, MessageSquare, PhoneOff, Lock, Zap, Users } from "lucide-react";
+import { Mic, Video, MonitorUp, MessageSquare, PhoneOff, Lock, Zap, Users, MicOff } from "lucide-react";
 import api from "../api/api";
 import "./LandingPage.css";
 
@@ -101,7 +101,7 @@ export default function LandingPage() {
 
                     <div className="hero-cta" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start", width: "100%", maxWidth: "420px" }}>
                         <div style={{ display: "flex", gap: "10px", width: "100%" }}>
-                            <button onClick={handleInstantMeeting} className="btn btn-cyan btn-lg" style={{ flex: 1, whiteSpace: "nowrap" }} disabled={starting}>
+                            <button onClick={handleInstantMeeting} className="btn btn-primary btn-lg" style={{ flex: 1, whiteSpace: "nowrap" }} disabled={starting}>
                                 {starting ? <span className="spinner" /> : "⚡ Start Instant Meeting"}
                             </button>
                         </div>
@@ -153,17 +153,23 @@ export default function LandingPage() {
                         <div className="mock-videos">
                             <div className="mock-video mock-video-main">
                                 <div className="mock-avatar">🧑</div>
-                                <div className="mock-name">Person 1</div>
+                                <div className="mock-name">Raj</div>
                                 <div className="mock-speaking-ring" />
+                                <div className="mock-chat-bubble fade-up" style={{ position: 'absolute', bottom: '16px', left: '16px', background: 'var(--bg-card)', padding: '8px 12px', borderRadius: '12px', fontSize: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)', display: 'flex', alignItems: 'center', gap: '8px', animationDelay: '1s' }}>
+                                    <MessageSquare size={14} color="var(--accent)" /> Can everyone see my screen?
+                                </div>
                             </div>
                             <div className="mock-video-grid">
                                 <div className="mock-video mock-video-sm">
-                                    <div className="mock-avatar">🧑</div>
-                                    <div className="mock-name">Person 2</div>
+                                    <div className="mock-avatar">👨</div>
+                                    <div className="mock-name">Rahul</div>
+                                    <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.5)', padding: '4px', borderRadius: '50%', display: 'flex' }}>
+                                        <MicOff size={10} color="#ef4444" />
+                                    </div>
                                 </div>
                                 <div className="mock-video mock-video-sm">
-                                    <div className="mock-avatar">🧑</div>
-                                    <div className="mock-name">Me</div>
+                                    <div className="mock-avatar">👩</div>
+                                    <div className="mock-name">Suchismita</div>
                                 </div>
                             </div>
                         </div>

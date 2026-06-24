@@ -1,11 +1,11 @@
-import OpenAI from "openai";
+// import OpenAI from "openai";
 import Meeting from "../models/Meeting.js";
 import Task from "../models/Task.js";
 import Notification from "../models/Notification.js";
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-development",
-});
+// const openai = new OpenAI({
+//     apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-development",
+// });
 
 export const summarizeMeeting = async (req, res) => {
     try {

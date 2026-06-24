@@ -7,7 +7,7 @@ import NotificationBell from "../components/NotificationBell";
 import type { Meeting, Task, Analytics, TeamMember, Invitation, Toast } from "../types";
 import "./Dashboard.css";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
 
 type DashboardView = "meetings" | "history" | "board" | "analytics" | "team";
 

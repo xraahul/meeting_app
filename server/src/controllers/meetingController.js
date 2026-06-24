@@ -142,7 +142,7 @@ export const endMeeting = async (req, res) => {
                 meetingId: meeting.meetingId,
                 title: item.task,
                 assignee: item.assignee || "Unassigned",
-                status: "pending"
+                status: "todo"
             }));
             const createdTasks = await Task.insertMany(tasksToInsert);
 

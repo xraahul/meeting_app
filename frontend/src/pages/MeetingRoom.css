@@ -4,10 +4,18 @@
 
 /* ─── Page Layout ─────────────────────────── */
 .room-page {
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --border: rgba(0, 0, 0, 0.1);
+    --bg-card: rgba(0, 0, 0, 0.05);
+    --bg-input: rgba(0, 0, 0, 0.05);
+
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: #060710;
+    background: #ffffff;
+    color: var(--text-primary);
     overflow: hidden;
 }
 
@@ -17,7 +25,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 24px;
-    background: rgba(15, 17, 32, 0.95);
+    background: rgba(255, 255, 255, 0.95);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(10px);
     flex-shrink: 0;
@@ -68,6 +76,19 @@
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+#copy-room-link {
+    background: #e0e7ff;
+    color: #3730a3;
+    font-size: 14px;
+    border: 1px solid #c7d2fe;
+    font-weight: 600;
+    padding: 8px 16px;
+}
+
+#copy-room-link:hover {
+    background: #c7d2fe;
 }
 
 /* ─── Content Area ────────────────────────── */
@@ -173,7 +194,7 @@
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    background: rgba(15, 17, 32, 0.97);
+    background: rgba(255, 255, 255, 0.97);
     border-left: 1px solid var(--border);
     animation: fadeIn 0.2s ease;
 }
@@ -274,7 +295,7 @@
     align-items: center;
     justify-content: center;
     padding: 16px 24px 20px;
-    background: rgba(10, 11, 20, 0.98);
+    background: rgba(255, 255, 255, 0.98);
     border-top: 1px solid var(--border);
     backdrop-filter: blur(20px);
     flex-shrink: 0;
@@ -309,13 +330,14 @@
 }
 
 .ctrl-btn-on {
-    background: rgba(255, 255, 255, 0.07);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .ctrl-btn-on:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: #f1f5f9;
     border-color: rgba(108, 99, 255, 0.4);
 }
 
@@ -374,7 +396,7 @@
 .sidebar-tabs {
     display: flex;
     border-bottom: 1px solid var(--border);
-    background: rgba(10, 11, 20, 0.4);
+    background: rgba(240, 240, 240, 0.4);
     flex-shrink: 0;
 }
 

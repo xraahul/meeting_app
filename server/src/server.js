@@ -1,4 +1,4 @@
-import "./instrument.js";
+// import "./instrument.js";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
 import app from "./app.js";
@@ -8,8 +8,9 @@ import { activeConnections } from "./metrics.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
+console.log(`Attempting to start server on port ${PORT}...`);
 const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });

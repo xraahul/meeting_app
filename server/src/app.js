@@ -10,7 +10,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import meetingRoutes from "./routes/meetingRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import Sentry from "./instrument.js";
+// import Sentry from "./instrument.js";
 import { register, httpRequestsTotal, httpRequestDuration } from "./metrics.js";
 
 dotenv.config();
@@ -33,6 +33,8 @@ app.use(
             process.env.CLIENT_URL,
             "http://localhost:5173",
             "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
         ].filter(Boolean),
         credentials: true,
     })
@@ -80,9 +82,9 @@ app.get("/", (_req, res) => {
     res.json({ message: "IntellMeet API Running ✓" });
 });
 
-if (process.env.SENTRY_DSN) {
-    Sentry.setupExpressErrorHandler(app);
-}
+// if (process.env.SENTRY_DSN) {
+//     Sentry.setupExpressErrorHandler(app);
+// }
 
 app.use((err, _req, res, _next) => {
     console.error("Unhandled error:", err.message);

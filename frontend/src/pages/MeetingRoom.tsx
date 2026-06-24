@@ -8,7 +8,7 @@ import api from "../api/api";
 import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, PhoneOff, Users, CircleDot } from "lucide-react";
 import "./MeetingRoom.css";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
 
 type LiveSubtitle = { username: string; text: string; roomId?: string };
 
@@ -476,7 +476,7 @@ export default function MeetingRoom() {
             const { data: createdTask } = await api.post(`/meetings/${roomId}/tasks`, {
                 title: newTaskTitle.trim(),
                 assignee: newTaskAssignee || "Unassigned",
-                status: "pending"
+                status: "todo"
             });
 
             setTasks((prev) => [...prev, createdTask]);
@@ -489,7 +489,7 @@ export default function MeetingRoom() {
     };
 
     const handleToggleTask = async (task: Task) => {
-        const newStatus = task.status === "completed" ? "pending" : "completed";
+        const newStatus = task.status === "completed" ? "todo" : "completed";
         try {
             const { data: updatedTask } = await api.put(`/meetings/tasks/${task._id}`, {
                 status: newStatus
@@ -525,9 +525,10 @@ export default function MeetingRoom() {
             api.post(`/meetings/${roomId}/summarize`).catch(e => console.error("Summary failed", e));
             
             leaveMeeting();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to end meeting:", err);
-            alert("Error ending meeting.");
+            const msg = err.response?.data?.message || err.message;
+            alert(`Error ending meeting: ${msg}`);
         }
     };
 
@@ -610,7 +611,7 @@ export default function MeetingRoom() {
                         onClick={() => setChatOpen(!chatOpen)}
                         title="Toggle collaboration sidebar"
                     >
-                        💬
+                        <MessageSquare size={18} />
                     </button>
 
                     <button

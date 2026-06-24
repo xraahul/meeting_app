@@ -11,7 +11,7 @@ import api from "../api/api";
 import { useAuth } from "./AuthContext";
 import type { Notification } from "../types";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
 
 interface NotificationContextValue {
     notifications: Notification[];
