@@ -19,7 +19,7 @@ services:
       - key: MONGO_URI
         sync: false               # You'll paste your MongoDB Atlas URI here
       - key: CLIENT_URL
-        sync: false               # Set to your frontend URL after deploy
+        value: https://intellmeet-frontend-pu4l.onrender.com
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
@@ -59,6 +59,6 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        sync: false               # Set to: https://intellmeet-api.onrender.com/api
+        value: https://intellmeet-api-pu4l.onrender.com/api
       - key: VITE_SOCKET_URL
-        sync: false               # Set to: https://intellmeet-api.onrender.com
+        value: https://intellmeet-api-pu4l.onrender.com
