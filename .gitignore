@@ -34,3 +34,6 @@ Thumbs.db
 # Security reports
 security/reports/
 !server/.env
+server/node_modules
+frontend/node_modules
+node_modules
