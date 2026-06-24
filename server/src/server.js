@@ -17,11 +17,17 @@ const server = app.listen(PORT, () => {
 
 export const io = new Server(server, {
     cors: {
-        origin: [
-            process.env.CLIENT_URL,
-            "http://localhost:5173",
-            "http://127.0.0.1:5173"
-        ].filter(Boolean),
+        origin: (origin, callback) => {
+            const allowed = [
+                process.env.CLIENT_URL,
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ].filter(Boolean);
+            if (!origin || allowed.includes(origin) || /\.vercel\.app$/.test(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`Socket CORS: origin '${origin}' not allowed`));
+        },
         methods: ["GET", "POST"],
         credentials: true,
     }

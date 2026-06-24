@@ -27,15 +27,25 @@ const apiLimiter = rateLimit({
     message: { message: "Too many requests, please try again later." },
 });
 
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+].filter(Boolean);
+
 app.use(
     cors({
-        origin: [
-            process.env.CLIENT_URL,
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "http://localhost:5174",
-            "http://127.0.0.1:5174",
-        ].filter(Boolean),
+        origin: (origin, callback) => {
+            // Allow requests with no origin (e.g. curl, Postman, mobile apps)
+            if (!origin) return callback(null, true);
+            // Allow any *.vercel.app preview/production URL
+            if (allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`CORS: origin '${origin}' not allowed`));
+        },
         credentials: true,
     })
 );
