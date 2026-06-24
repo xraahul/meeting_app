@@ -1,5 +1,3 @@
-import path from "path";
-
 import { v4 as uuidv4 } from "uuid";
 
 import Meeting from "../models/Meeting.js";
@@ -10,6 +8,7 @@ import { transcribeWithWhisper } from "../services/whisperService.js";
 import { notifyUserByUsername } from "../services/notificationService.js";
 import redisClient from "../config/redis.js";
 import { getIO } from "../config/socket.js";
+import { uploadRecordingToCloudinary } from "../middleware/recordingUpload.js";
 
 export const createMeeting = async (req, res) => {
 
@@ -170,7 +169,7 @@ export const endMeeting = async (req, res) => {
     }
 };
 
-// ─── UPLOAD RECORDING ────────────────────────────────────────────────────────
+// ─── UPLOAD RECORDING ─────────────────────────────────────────────────────────
 export const uploadRecording = async (req, res) => {
     try {
         const meeting = await Meeting.findOne({ meetingId: req.params.id });
@@ -182,22 +181,24 @@ export const uploadRecording = async (req, res) => {
             return res.status(400).json({ message: "No recording file provided" });
         }
 
-        // Construct public URL
-        const hostname = req.get("host");
-        const protocol = req.protocol;
-        const recordingUrl = `${protocol}://${hostname}/uploads/recordings/${req.file.filename}`;
+        // Upload directly to Cloudinary (persistent across Render restarts)
+        let recordingUrl;
+        try {
+            recordingUrl = await uploadRecordingToCloudinary(req.file.buffer, req.file.originalname);
+        } catch (cloudinaryErr) {
+            console.error("Cloudinary recording upload failed:", cloudinaryErr.message);
+            return res.status(500).json({ message: "Failed to upload recording to cloud storage" });
+        }
 
         meeting.recordingUrl = recordingUrl;
 
-        // Whisper transcription from uploaded recording
+        // Whisper transcription — pass the Cloudinary URL to whisperService
         const speakerName = req.user
             ? (await User.findById(req.user.userId))?.username || "Host"
             : "Host";
 
         try {
-            const filePath = path.join(process.cwd(), "uploads", "recordings", req.file.filename);
-            const whisperTranscript = await transcribeWithWhisper(filePath, speakerName);
-
+            const whisperTranscript = await transcribeWithWhisper(recordingUrl, speakerName);
             if (whisperTranscript.length > 0) {
                 meeting.transcript.push(...whisperTranscript);
             }

@@ -44,7 +44,6 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use("/api", apiLimiter);
-app.use("/uploads", express.static("uploads"));
 
 app.use((req, res, next) => {
     if (req.path === "/metrics" || req.path === "/health") return next();

@@ -4,11 +4,12 @@ import axios from "axios";
 
 /**
  * Transcribe an audio/video file using OpenAI Whisper.
- * @param {string} filePath - Absolute path to the recording file.
+ * Accepts either a local file path or a remote URL (e.g. Cloudinary).
+ * @param {string} filePathOrUrl - Local file path or HTTPS URL to the recording.
  * @param {string} [username="System"] - Speaker label for transcript entries.
  * @returns {Promise<Array<{username: string, text: string, timestamp: Date}>>}
  */
-export const transcribeWithWhisper = async (filePath, username = "System") => {
+export const transcribeWithWhisper = async (filePathOrUrl, username = "System") => {
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -16,12 +17,26 @@ export const transcribeWithWhisper = async (filePath, username = "System") => {
         return [];
     }
 
-    if (!fs.existsSync(filePath)) {
-        throw new Error("Recording file not found for transcription.");
+    const form = new FormData();
+
+    const isRemoteUrl = filePathOrUrl.startsWith("http://") || filePathOrUrl.startsWith("https://");
+
+    if (isRemoteUrl) {
+        // Download the remote file into a buffer and attach it
+        const response = await axios.get(filePathOrUrl, { responseType: "arraybuffer" });
+        const buffer = Buffer.from(response.data);
+        form.append("file", buffer, {
+            filename: "recording.webm",
+            contentType: "video/webm"
+        });
+    } else {
+        // Local file path
+        if (!fs.existsSync(filePathOrUrl)) {
+            throw new Error("Recording file not found for transcription.");
+        }
+        form.append("file", fs.createReadStream(filePathOrUrl));
     }
 
-    const form = new FormData();
-    form.append("file", fs.createReadStream(filePath));
     form.append("model", "whisper-1");
     form.append("response_format", "verbose_json");
 

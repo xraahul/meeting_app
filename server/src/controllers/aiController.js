@@ -1,11 +1,7 @@
-// import OpenAI from "openai";
 import Meeting from "../models/Meeting.js";
 import Task from "../models/Task.js";
 import Notification from "../models/Notification.js";
-
-// const openai = new OpenAI({
-//     apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-development",
-// });
+import { generateAISummary } from "../services/aiService.js";
 
 export const summarizeMeeting = async (req, res) => {
     try {
@@ -20,52 +16,18 @@ export const summarizeMeeting = async (req, res) => {
             return res.status(400).json({ message: "No transcript available to summarize." });
         }
 
-        // Format transcript for OpenAI
-        const formattedTranscript = meeting.transcript
-            .map((t) => `[${t.username}]: ${t.text}`)
-            .join("\n");
+        // Use the shared aiService which handles OpenAI, Gemini, and NLP fallback
+        const aiResponse = await generateAISummary(meeting.title, meeting.transcript);
 
-        if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== "dummy-key-for-development") {
-            const prompt = `You are an AI meeting assistant. Analyze the following meeting transcript. Provide a concise summary, an array of key points, and an array of actionable tasks. Format the output strictly as a JSON object with this exact structure: 
-            { 
-              "summaryText": "Brief paragraph summary", 
-              "keyPoints": ["Point 1", "Point 2"], 
-              "actionItems": [
-                { "task": "Description of task", "assignee": "Name or Unassigned" }
-              ] 
-            }
-            
-            Transcript:
-            ${formattedTranscript}
-            `;
-
-            const completion = await openai.chat.completions.create({
-                messages: [{ role: "user", content: prompt }],
-                model: "gpt-3.5-turbo",
-                response_format: { type: "json_object" }
-            });
-
-            const aiResponse = JSON.parse(completion.choices[0].message.content);
-
-            meeting.summary = {
-                text: aiResponse.summaryText || "",
-                keyPoints: aiResponse.keyPoints || [],
-                actionItems: (aiResponse.actionItems || []).map(item => ({
-                    task: item.task,
-                    assignee: item.assignee,
-                    status: "pending"
-                }))
-            };
-        } else {
-            // Development fallback / Mock response
-            meeting.summary = {
-                text: "Mock Summary: This is an automatically generated summary because no OpenAI key was provided. The meeting discussed several important topics.",
-                keyPoints: ["Discussed project timelines", "Agreed on new UI changes"],
-                actionItems: [
-                    { task: "Update the landing page UI", assignee: "Unassigned", status: "pending" }
-                ]
-            };
-        }
+        meeting.summary = {
+            text: aiResponse.text || "",
+            keyPoints: aiResponse.keyPoints || [],
+            actionItems: (aiResponse.actionItems || []).map(item => ({
+                task: item.task,
+                assignee: item.assignee || "Unassigned",
+                status: item.status || "pending"
+            }))
+        };
 
         await meeting.save();
 
