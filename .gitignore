@@ -33,3 +33,4 @@ Thumbs.db
 
 # Security reports
 security/reports/
+!server/.env
